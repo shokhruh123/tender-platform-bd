@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тендерная платформа — защита СР №1 | Октамов Шохрухбек</title>
+<style>
+  :root{
+    --bg:#0b1220; --bg2:#111a2e; --card:#16213a;
+    --line:#263a52;
+    --gold:#f5b301; --blue:#4da3ff; --green:#3ddc84; --text:#eef2f7; --muted:#9aa7bd;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:var(--bg);color:var(--text);
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;overflow:hidden}
+  .deck{position:fixed;inset:0}
+  .slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+    padding:6vh 7vw;opacity:0;visibility:hidden;transform:translateX(60px) scale(.985);
+    transition:opacity .55s ease,transform .55s ease,visibility .55s}
+  .slide.active{opacity:1;visibility:visible;transform:none}
+  .slide.prev{transform:translateX(-60px) scale(.985)}
+  .kicker{color:var(--gold);letter-spacing:.35em;font-size:13px;font-weight:700;margin-bottom:18px}
+  h1{font-size:clamp(38px,5.4vw,72px);line-height:1.08;font-weight:800}
+  h1 .hl{color:var(--gold)}
+  h2{font-size:clamp(28px,3.6vw,46px);font-weight:800;margin-bottom:26px}
+  h2 .n{color:var(--gold)}
+  p.sub{color:var(--muted);font-size:clamp(15px,1.5vw,20px);margin-top:16px;max-width:900px;line-height:1.6}
+  .grid{display:grid;gap:16px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g6{grid-template-columns:repeat(6,1fr)}
+  .card{background:linear-gradient(160deg,var(--card),var(--bg2));border:1px solid var(--line);
+    border-radius:18px;padding:22px 20px;min-height:130px}
+  .card b{font-size:17px}
+  .card span{color:var(--muted);font-size:14px;line-height:1.55;display:block;margin-top:8px}
+  .bignum{font-size:clamp(30px,3.4vw,48px);font-weight:800;color:var(--gold)}
+  .tag{display:inline-block;border:1px solid var(--gold);color:var(--gold);border-radius:999px;
+    padding:4px 14px;font-size:13px;font-weight:700;margin:3px 4px 3px 0}
+  .code{background:#070c16;border:1px solid var(--line);border-radius:14px;padding:18px 20px;
+    font-family:Consolas,"Cascadia Code",monospace;font-size:14.5px;line-height:1.65;color:#cfe3ff;
+    overflow:auto;max-height:52vh;white-space:pre}
+  .code .k{color:var(--gold);font-weight:700}
+  .code .c{color:#5f6f89}
+  img.shot{width:100%;max-height:56vh;object-fit:contain;border-radius:14px;
+    border:1px solid var(--line);background:#000}
+  img.er{width:100%;max-height:60vh;object-fit:contain;border-radius:14px;background:#fff;padding:8px}
+  .bar-row{display:grid;grid-template-columns:210px 1fr 64px;gap:14px;align-items:center;margin:11px 0}
+  .bar-row .lbl{font-size:15px}
+  .bar-track{background:#1b2740;border-radius:999px;height:26px;overflow:hidden}
+  .bar-fill{height:100%;width:0;border-radius:999px;
+    background:linear-gradient(90deg,var(--gold),#ff7847);transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+  .slide.active .bar-fill{width:var(--w)}
+  .bar-row .val{font-weight:800;color:var(--gold)}
+  /* появление элементов по очереди */
+  .slide .rv{opacity:0;transform:translateY(26px);transition:opacity .5s ease,transform .5s ease}
+  .slide.active .rv{opacity:1;transform:none}
+  .slide.active .rv:nth-child(1){transition-delay:.05s}.slide.active .rv:nth-child(2){transition-delay:.15s}
+  .slide.active .rv:nth-child(3){transition-delay:.25s}.slide.active .rv:nth-child(4){transition-delay:.35s}
+  .slide.active .rv:nth-child(5){transition-delay:.45s}.slide.active .rv:nth-child(6){transition-delay:.55s}
+  .slide.active .rv:nth-child(7){transition-delay:.65s}.slide.active .rv:nth-child(8){transition-delay:.75s}
+  .grid .rv{transition-delay:0s!important}
+  .slide.active .grid .rv:nth-child(1){transition-delay:.1s}.slide.active .grid .rv:nth-child(2){transition-delay:.2s}
+  .slide.active .grid .rv:nth-child(3){transition-delay:.3s}.slide.active .grid .rv:nth-child(4){transition-delay:.4s}
+  .slide.active .grid .rv:nth-child(5){transition-delay:.5s}.slide.active .grid .rv:nth-child(6){transition-delay:.6s}
+  /* герой титула */
+  .hero-glow{position:absolute;width:60vw;height:60vw;right:-18vw;top:-18vw;border-radius:50%;
+    background:radial-gradient(circle,rgba(245,179,1,.16),transparent 65%);pointer-events:none}
+  .hero-grid{position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(rgba(77,163,255,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(77,163,255,.06) 1px,transparent 1px);background-size:56px 56px;
+    mask-image:radial-gradient(circle at 70% 30%,#000 30%,transparent 75%)}
+  .pill{display:inline-block;background:rgba(61,220,132,.12);border:1px solid var(--green);color:var(--green);
+    border-radius:12px;padding:10px 18px;font-weight:700;margin:6px 8px 0 0;font-size:15px}
+  /* chrome */
+  #bar{position:fixed;left:0;bottom:0;height:4px;width:0;background:linear-gradient(90deg,var(--gold),var(--blue));z-index:50}
+  #cnt{position:fixed;right:26px;bottom:18px;color:var(--muted);font-size:14px;z-index:50}
+  #hint{position:fixed;left:26px;bottom:18px;color:var(--muted);font-size:13px;z-index:50}
+  .nav{position:fixed;right:22px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:9px;z-index:50}
+  .nav i{width:9px;height:9px;border-radius:50%;background:#33415c;cursor:pointer;transition:.3s}
+  .nav i.on{background:var(--gold);transform:scale(1.5)}
+  @media(max-width:900px){.g3,.g2,.g6{grid-template-columns:1fr 1fr}.slide{padding:5vh 5vw}}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- 1 ТИТУЛ -->
+  <section class="slide">
+    <div class="hero-glow"></div><div class="hero-grid"></div>
+    <div class="kicker rv">САМОСТОЯТЕЛЬНАЯ РАБОТА № 1 · БАЗЫ ДАННЫХ</div>
+    <h1 class="rv">Тендерная <span class="hl">платформа</span><br>организации · заявки · победители</h1>
+    <p class="sub rv">Мини-проект: проектирование и реализация реляционной БД · MySQL 8.4 · 6 таблиц · 11 запросов · самопроверки SELF-CHECK</p>
+    <div class="rv" style="margin-top:26px">
+      <span class="pill">Октамов Шохрухбек</span>
+      <span class="pill">271-25 SIr</span>
+      <span class="pill">ТУИТ · 2026</span>
+    </div>
+  </section>
+
+  <!-- 2 ПЛАН -->
+  <section class="slide">
+    <div class="kicker">ПЛАН ЗАЩИТЫ</div><h2><span class="n">01</span> — О чём расскажу</h2>
+    <div class="grid g3">
+      <div class="card rv"><b>1 · Задача</b><span>Предметная область, пользователи, бизнес-правила</span></div>
+      <div class="card rv"><b>2 · Модель</b><span>Сущности, связи, ER-диаграмма</span></div>
+      <div class="card rv"><b>3 · Реализация</b><span>Таблицы, ключи, 3НФ, DDL/DML</span></div>
+      <div class="card rv"><b>4 · Запросы</b><span>11 DQL: агрегаты, JOIN, множества</span></div>
+      <div class="card rv"><b>5 · Доказательства</b><span>Живая консоль, экономия, самопроверки</span></div>
+      <div class="card rv"><b>6 · Итоги</b><span>Что сделано и чему научился</span></div>
+    </div>
+  </section>
+
+  <!-- 3 ОБЛАСТЬ -->
+  <section class="slide">
+    <div class="kicker">ПРЕДМЕТНАЯ ОБЛАСТЬ</div><h2><span class="n">02</span> — Как работает платформа</h2>
+    <div class="grid g3">
+      <div class="card rv"><b>🏛 Заказчик</b><span>Публикует тендер: категория, стартовая цена, сроки, город поставки</span></div>
+      <div class="card rv"><b>📨 Поставщик</b><span>Проходит аккредитацию и подаёт заявку — строго одну на тендер</span></div>
+      <div class="card rv"><b>🏆 Комиссия</b><span>Фиксирует победителя протоколом: один протокол — один тендер</span></div>
+    </div>
+    <p class="sub rv">Ключевое правило: победившая заявка обязана принадлежать своему тендеру — это гарантирует составной внешний ключ <b>(appl_id, tender_id)</b>.</p>
+  </section>
+
+  <!-- 4 СВЯЗИ -->
+  <section class="slide">
+    <div class="kicker">КОНЦЕПТУАЛЬНАЯ МОДЕЛЬ</div><h2><span class="n">03</span> — Сущности и связи</h2>
+    <div class="rv" style="margin-bottom:14px">
+      <span class="tag">company</span><span class="tag">tender_category</span><span class="tag">accreditation · M:N</span><span class="tag">tender</span><span class="tag">application</span><span class="tag">victory_protocol · 1:1</span>
+    </div>
+    <div class="grid g2">
+      <div class="card rv"><b>1 : N</b><span>заказчик → тендеры · категория → тендеры · тендер → заявки · компания → заявки</span></div>
+      <div class="card rv"><b>M : N и 1 : 1</b><span>компании ↔ категории через accreditation · тендер ↔ протокол победы</span></div>
+    </div>
+  </section>
+
+  <!-- 5 ER -->
+  <section class="slide">
+    <div class="kicker">ER-ДИАГРАММА</div><h2><span class="n">04</span> — Вся база одним взглядом</h2>
+    <img class="shot er rv" src="ER-диаграмма.png" alt="ER-диаграмма">
+  </section>
+
+  <!-- 6 ТАБЛИЦЫ -->
+  <section class="slide">
+    <div class="kicker">ЛОГИЧЕСКАЯ МОДЕЛЬ · 3НФ</div><h2><span class="n">05</span> — 6 таблиц, ключи везде</h2>
+    <div class="grid g6">
+      <div class="card rv"><div class="bignum" data-cnt="12">0</div><span><b>company</b><br>PK · UQ stir/email · CHECK роли</span></div>
+      <div class="card rv"><div class="bignum" data-cnt="6">0</div><span><b>tender_category</b><br>справочник направлений</span></div>
+      <div class="card rv"><div class="bignum" data-cnt="16">0</div><span><b>accreditation</b><br>составной PK · M:N</span></div>
+      <div class="card rv"><div class="bignum" data-cnt="11">0</div><span><b>tender</b><br>2 FK · CHECK цен и сроков</span></div>
+      <div class="card rv"><div class="bignum" data-cnt="19">0</div><span><b>application</b><br>UQ пара · 2 UQ-пары</span></div>
+      <div class="card rv"><div class="bignum" data-cnt="7">0</div><span><b>victory_protocol</b><br>PK=FK · составной FK</span></div>
+    </div>
+    <p class="sub rv">1НФ — всё атомарно · 2НФ — нет частичных зависимостей · 3НФ — названия и данные живут в своих таблицах, производные значения считаются в запросах.</p>
+  </section>
+
+  <!-- 7 DDL/DML -->
+  <section class="slide">
+    <div class="kicker">РЕАЛИЗАЦИЯ</div><h2><span class="n">06</span> — DDL + DML</h2>
+    <div class="code rv"><span class="c">-- пересоздание (идемпотентно) + составной ключ-фишка проекта</span>
+<span class="k">DROP DATABASE IF EXISTS</span> tender_platform_oktamov;
+<span class="k">CREATE DATABASE</span> tender_platform_oktamov <span class="k">CHARACTER SET</span> utf8mb4;
+<span class="k">CREATE TABLE</span> victory_protocol (
+  tender_id <span class="k">INT PRIMARY KEY</span>,
+  appl_id   <span class="k">INT NOT NULL UNIQUE</span>,
+  <span class="k">FOREIGN KEY</span> (appl_id, tender_id) <span class="k">REFERENCES</span> application (appl_id, tender_id)
+);
+<span class="k">ALTER TABLE</span> company <span class="k">ADD COLUMN</span> director VARCHAR(100);
+<span class="k">INSERT INTO</span> company ...  <span class="c">-- 12 авторских компаний</span>
+<span class="k">UPDATE</span> tender ... <span class="k">DELETE FROM</span> company ...  <span class="c">-- точечно, по WHERE</span></div>
+  </section>
+
+  <!-- 8 ЗАПРОСЫ -->
+  <section class="slide">
+    <div class="kicker">11 DQL-ЗАПРОСОВ</div><h2><span class="n">07</span> — От выборки до множеств</h2>
+    <div class="grid g3">
+      <div class="card rv"><b>Топ-5 по бюджету</b><span>ROUND · ORDER BY DESC · LIMIT → УЗИ-аппараты 2 750 млн</span></div>
+      <div class="card rv"><b>Статистика заявок</b><span>GROUP BY + COUNT/SUM/MIN/MAX/AVG по статусам</span></div>
+      <div class="card rv"><b>Конкуренция</b><span>WHERE vs HAVING → по 2 заявки на 7 тендеров</span></div>
+      <div class="card rv"><b>JOIN</b><span>INNER ×3–4 таблицы · LEFT с нулевым счётчиком</span></div>
+      <div class="card rv"><b>Множества</b><span>UNION · INTERSECT → №1 · EXCEPT → №1</span></div>
+      <div class="card rv"><b>Экономия</b><span>победители + saving % — максимум 8,7 %</span></div>
+    </div>
+  </section>
+
+  <!-- 9 ЭКОНОМИЯ -->
+  <section class="slide">
+    <div class="kicker">ЗАПРОС 8 · ЖИВЫЕ ЦИФРЫ</div><h2><span class="n">08</span> — Экономия бюджета, %</h2>
+    <div class="rv">
+      <div class="bar-row"><div class="lbl">Школа № 45 · Qoqon</div><div class="bar-track"><div class="bar-fill" style="--w:100%"></div></div><div class="val">8.7</div></div>
+      <div class="bar-row"><div class="lbl">Канцелярия · Jizzakh</div><div class="bar-track"><div class="bar-fill" style="--w:93%"></div></div><div class="val">8.1</div></div>
+      <div class="bar-row"><div class="lbl">Портал · Uzbektelecom</div><div class="bar-track"><div class="bar-fill" style="--w:85%"></div></div><div class="val">7.4</div></div>
+      <div class="bar-row"><div class="lbl">Перевозка · Bukhara</div><div class="bar-track"><div class="bar-fill" style="--w:85%"></div></div><div class="val">7.4</div></div>
+      <div class="bar-row"><div class="lbl">УЗИ-аппараты · Nukus</div><div class="bar-track"><div class="bar-fill" style="--w:67%"></div></div><div class="val">5.8</div></div>
+      <div class="bar-row"><div class="lbl">Саженцы · Fergana</div><div class="bar-track"><div class="bar-fill" style="--w:66%"></div></div><div class="val">5.7</div></div>
+      <div class="bar-row"><div class="lbl">Очередь · Samarqand</div><div class="bar-track"><div class="bar-fill" style="--w:54%"></div></div><div class="val">4.7</div></div>
+    </div>
+  </section>
+
+  <!-- 10 КОНСОЛЬ 1-2 -->
+  <section class="slide">
+    <div class="kicker">ДОКАЗАТЕЛЬСТВА · МОЯ КОНСОЛЬ</div><h2><span class="n">09</span> — Данные загружены</h2>
+    <div class="grid g2">
+      <img class="shot rv" src="Консоль 1 — таблица company.png" alt="company">
+      <img class="shot rv" src="Консоль 2 — протоколы и таблицы.png" alt="протоколы">
+    </div>
+  </section>
+
+  <!-- 11 КОНСОЛЬ 3-4 -->
+  <section class="slide">
+    <div class="kicker">ДОКАЗАТЕЛЬСТВА · МОЯ КОНСОЛЬ</div><h2><span class="n">10</span> — Запросы и самопроверки</h2>
+    <div class="grid g2">
+      <img class="shot rv" src="Консоль 3 — тендеры.png" alt="тендеры">
+      <img class="shot rv" src="Консоль 4 — победители и самопроверки.png" alt="самопроверки">
+    </div>
+  </section>
+
+  <!-- 12 ИТОГИ -->
+  <section class="slide">
+    <div class="hero-glow"></div>
+    <div class="kicker">ИТОГИ</div><h2><span class="n">11</span> — Что сделано</h2>
+    <div class="grid g2">
+      <div class="card rv"><b>✅ База работает</b><span>MySQL 8.4.9 · скрипт RC=0 · 0 ошибок · 6 таблиц · 64 строки</span></div>
+      <div class="card rv"><b>✅ Весь SQL-арсенал</b><span>DDL · DML · 11 DQL · JOIN · UNION / INTERSECT / EXCEPT · SELF-CHECK</span></div>
+      <div class="card rv"><b>✅ Честные цифры</b><span>экономия 4,7–8,7 % · конкуренция 2:1 · все самопроверки зелёные</span></div>
+      <div class="card rv"><b>✅ Комплект сдан</b><span>отчёт · скрипт · ER · скрины · github.com/shokhruh123/tender-platform-bd</span></div>
+    </div>
+    <h1 class="rv" style="margin-top:30px;font-size:clamp(26px,3vw,40px)">Спасибо! <span class="hl">Вопросы?</span></h1>
+  </section>
+
+</div>
+<div id="bar"></div><div id="cnt"></div><div id="hint">← → · пробел · клик — листать</div>
+<div class="nav" id="nav"></div>
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  const nav=document.getElementById('nav'),bar=document.getElementById('bar'),cnt=document.getElementById('cnt');
+  let cur=0;
+  slides.forEach((_,i)=>{const d=document.createElement('i');d.onclick=()=>go(i);nav.appendChild(d);});
+  const dots=[...nav.children];
+  // анимированные счётчики
+  function counters(s){
+    s.querySelectorAll('[data-cnt]').forEach(el=>{
+      const target=+el.dataset.cnt;el.dataset.done=1;const t0=performance.now();
+      (function tick(t){const p=Math.min(1,(t-t0)/900),e=1-Math.pow(1-p,3);
+        el.textContent=Math.round(target*e);if(p<1)requestAnimationFrame(tick);})(t0);
+    });
+  }
+  function go(i){
+    cur=(i+slides.length)%slides.length;
+    slides.forEach((s,k)=>{s.classList.toggle('active',k===cur);s.classList.toggle('prev',k<cur);});
+    dots.forEach((d,k)=>d.classList.toggle('on',k===cur));
+    bar.style.width=((cur+1)/slides.length*100)+'%';
+    cnt.textContent=(cur+1)+' / '+slides.length;
+    counters(slides[cur]);
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='Enter')go(cur+1);
+    if(e.key==='ArrowLeft')go(cur-1);
+    if(e.key==='Home')go(0);if(e.key==='End')go(slides.length-1);
+  });
+  document.addEventListener('click',e=>{if(!e.target.closest('.nav'))go(cur+1);});
+  go(0);
+</script>
+</body>
+</html>
