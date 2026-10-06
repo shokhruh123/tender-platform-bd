@@ -1,0 +1,113 @@
+PROOF: tender_platform_oktamov @ MySQL 8.4.9 (port 3308), full script RC=0, 0 errors
+==========================================================================================
+
+--- version ---
+mysql_version
+8.4.9
+
+--- tables ---
+Tables_in_tender_platform_oktamov
+accreditation
+application
+company
+tender
+tender_category
+victory_protocol
+
+--- q1_top5 ---
+tender_id	tender_title	price_mln
+3	Поставка УЗИ-аппаратов для областных клиник	2750.0
+6	Строительство спортзала при школе № 12	1350.0
+1	Капремонт школы № 45 Мирзо-Улугбекского района	920.0
+2	Разработка платформы электронной очереди поликлиник	380.0
+5	Создание портала резидентов IT-Park	340.0
+
+--- q2_cities ---
+city
+Бухара
+Джизак
+Коканд
+Нукус
+Самарканд
+Ташкент
+Ургенч
+Фергана
+
+--- q3_like ---
+tender_id	tender_title	start_price
+4	Закупка канцелярии для школ района	52000000.00
+7	Поставка саженцев и капельного орошения	210000000.00
+
+--- q4_group ---
+appl_status	n	s	ROUND(MIN(offered_sum)/1000000.0,1)	ROUND(MAX(offered_sum)/1000000.0,1)	ROUND(AVG(offered_sum)/1000000.0,1)
+accepted	7	4434.3	47.8	2590.0	633.5
+rejected	6	1911.5	49.5	875.0	318.6
+submitted	6	3485.5	158.0	1310.0	580.9
+
+--- q5_having ---
+tender_id	n	MIN(offered_sum)
+4	2	47800000.00
+5	2	315000000.00
+6	2	1290000000.00
+7	2	198000000.00
+8	2	81500000.00
+9	2	281000000.00
+10	2	158000000.00
+
+--- q6_open ---
+tender_id	tender_title	cat_name	customer
+9	Закупка интерактивных досок для школ	IT-услуги и софт	Хокимият Мирзо-Улугбекского района
+10	Капремонт кровли здания IT-Park	Строительство и капремонт	IT-Park Tashkent
+
+--- q7_left ---
+company_name	n
+ЧП «Urgench Logistics»	0
+ООО «Jizzakh Office Supply»	1
+ООО «Nukus MedTech»	1
+СП «Fergana Valley Agro»	1
+
+--- q8_win ---
+tender_id	winner	final_sum	saving
+1	ООО «Qoqon Green Agro»	840000000.00	8.7
+3	ООО «Nukus MedTech»	2590000000.00	5.8
+2	ООО «Samarqand Soft»	362000000.00	4.7
+4	ООО «Jizzakh Office Supply»	47800000.00	8.1
+5	АО «Uzbektelecom Hudud»	315000000.00	7.4
+7	СП «Fergana Valley Agro»	198000000.00	5.7
+8	ООО «Bukhara Cotton Trade»	81500000.00	7.4
+
+--- q9_union ---
+city
+Бухара
+Джизак
+Коканд
+Нукус
+Самарканд
+Ташкент
+Ургенч
+Фергана
+
+--- q10_inter ---
+company_id
+1
+
+--- q11_except ---
+company_id
+1
+
+--- selfcheck_counts ---
+chk	v
+companies	12
+tender_category	6
+accreditation	16
+tender	11
+application	19
+victory_protocol	7
+
+--- selfcheck_orphans ---
+orphan_applications
+0
+
+--- selfcheck_mismatch ---
+winner_wrong_tender
+0

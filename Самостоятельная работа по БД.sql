@@ -327,3 +327,67 @@ EXCEPT
 SELECT a.company_id
 FROM victory_protocol v INNER JOIN application a ON v.appl_id = a.appl_id
 ORDER BY company_id;
+
+-- ============================================================================
+-- 6. SELF-CHECK: самопроверки целостности (только чтение, можно перезапускать).
+--    Каждый запрос обязан вернуть ok = 1. Если хотя бы один вернул 0 —
+--    данные или ограничения нарушены, скрипт требует разбора.
+-- ============================================================================
+
+-- 6.1. Объёмы таблиц соответствуют тестовому набору.
+SELECT 'companies' AS check_name, COUNT(*) AS value, 12 AS expected, (COUNT(*) = 12) AS ok FROM company
+UNION ALL
+SELECT 'tender_category', COUNT(*), 6, (COUNT(*) = 6) FROM tender_category
+UNION ALL
+SELECT 'accreditation', COUNT(*), 16, (COUNT(*) = 16) FROM accreditation
+UNION ALL
+SELECT 'tender', COUNT(*), 11, (COUNT(*) = 11) FROM tender
+UNION ALL
+SELECT 'application', COUNT(*), 19, (COUNT(*) = 19) FROM application
+UNION ALL
+SELECT 'victory_protocol', COUNT(*), 7, (COUNT(*) = 7) FROM victory_protocol;
+
+-- 6.2. Заявки-сироты (тендер удалён, заявка осталась): обязателен 0.
+SELECT 'orphan_applications' AS check_name, COUNT(*) AS value, 0 AS expected, (COUNT(*) = 0) AS ok
+FROM application a LEFT JOIN tender t ON a.tender_id = t.tender_id
+WHERE t.tender_id IS NULL;
+
+-- 6.3. Протоколы, чья заявка относится к чужому тендеру: обязателен 0
+--      (составной FK делает такой исход невозможным — проверка это доказывает).
+SELECT 'winner_wrong_tender' AS check_name, COUNT(*) AS value, 0 AS expected, (COUNT(*) = 0) AS ok
+FROM victory_protocol v INNER JOIN application a ON v.appl_id = a.appl_id
+WHERE v.tender_id <> a.tender_id;
+
+-- 6.4. Дубли уникальных полей: обязательно 0.
+SELECT 'dup_stir' AS check_name,
+       (COUNT(*) - COUNT(DISTINCT stir)) AS value, 0 AS expected,
+       ((COUNT(*) - COUNT(DISTINCT stir)) = 0) AS ok FROM company
+UNION ALL
+SELECT 'dup_email',
+       (COUNT(*) - COUNT(DISTINCT email)), 0,
+       ((COUNT(*) - COUNT(DISTINCT email)) = 0) FROM company
+UNION ALL
+SELECT 'dup_protocol_no',
+       (COUNT(*) - COUNT(DISTINCT protocol_no)), 0,
+       ((COUNT(*) - COUNT(DISTINCT protocol_no)) = 0) FROM victory_protocol;
+
+-- 6.5. Контракт дороже стартовой цены (отрицательная экономия): обязателен 0.
+SELECT 'negative_saving' AS check_name, COUNT(*) AS value, 0 AS expected, (COUNT(*) = 0) AS ok
+FROM victory_protocol v INNER JOIN tender t ON v.tender_id = t.tender_id
+WHERE v.final_sum > t.start_price;
+
+-- 6.6. Итог: 1 означает «все проверки зелёные».
+SELECT (SELECT COUNT(*) = 6 FROM (
+  SELECT COUNT(*) AS c FROM company HAVING c = 12
+  UNION ALL SELECT COUNT(*) FROM tender_category HAVING COUNT(*) = 6
+  UNION ALL SELECT COUNT(*) FROM accreditation HAVING COUNT(*) = 16
+  UNION ALL SELECT COUNT(*) FROM tender HAVING COUNT(*) = 11
+  UNION ALL SELECT COUNT(*) FROM application HAVING COUNT(*) = 19
+  UNION ALL SELECT COUNT(*) FROM victory_protocol HAVING COUNT(*) = 7
+) s) AS all_counts_ok,
+(SELECT COUNT(*) FROM application a LEFT JOIN tender t ON a.tender_id = t.tender_id
+  WHERE t.tender_id IS NULL) = 0 AS no_orphans,
+(SELECT COUNT(*) FROM victory_protocol v INNER JOIN application a ON v.appl_id = a.appl_id
+  WHERE v.tender_id <> a.tender_id) = 0 AS winners_consistent,
+(SELECT COUNT(*) FROM victory_protocol v INNER JOIN tender t ON v.tender_id = t.tender_id
+  WHERE v.final_sum > t.start_price) = 0 AS savings_positive;
