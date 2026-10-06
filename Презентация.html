@@ -8,12 +8,15 @@
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%;overflow:hidden;background:#000;color:#f2f2f2;
     font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
-  /* фото-фон Full HD + затемнение */
-  .bg{position:fixed;inset:-4%;background:url("bg-main.jpg") center/cover no-repeat;
-    animation:drift 40s ease-in-out infinite alternate;z-index:0}
-  @keyframes drift{from{transform:scale(1) translate(0,0)}to{transform:scale(1.08) translate(-1.5%,1%)}}
-  .shade{position:fixed;inset:0;z-index:1;
-    background:linear-gradient(105deg,rgba(0,0,0,.92) 20%,rgba(0,0,0,.78) 55%,rgba(0,0,0,.55) 100%)}
+  /* фон каждого слайда свой: --sbg задаётся в section */
+  .slide{background:#000}
+  .slide::before{content:"";position:absolute;inset:0;
+    background-image:var(--sbg);background-position:center;background-size:cover;background-repeat:no-repeat}
+  .slide.active::before{animation:drift 36s ease-in-out infinite alternate}
+  @keyframes drift{from{transform:scale(1)}to{transform:scale(1.07)}}
+  .slide::after{content:"";position:absolute;inset:0;
+    background:linear-gradient(105deg,rgba(0,0,0,.93) 15%,rgba(0,0,0,.8) 55%,rgba(0,0,0,.6) 100%)}
+  .slide>*{position:relative;z-index:1}
   .deck{position:fixed;inset:0;z-index:2}
   .slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
     padding:5.5vh 6.5vw;opacity:0;visibility:hidden;transform:translateY(36px);
@@ -78,10 +81,9 @@
 </style>
 </head>
 <body>
-<div class="bg"></div><div class="shade"></div>
 <div class="deck" id="deck">
 
-  <section class="slide">
+  <section class="slide" style="--sbg:url(bg-main.jpg)">
     <div class="kick rv">САМОСТОЯТЕЛЬНАЯ РАБОТА № 1 · БАЗЫ ДАННЫХ · MySQL 8.4</div>
     <h1 class="rv">Тендерная платформа:<br>организации, заявки, победители</h1>
     <p class="lead rv">Полный цикл госзакупки в реляционной базе: регистрация компаний, аккредитация по категориям, публикация тендеров, сбор заявок, протокол победы. Скрипт выполняется целиком без ошибок, целиком воспроизводим.</p>
@@ -94,7 +96,7 @@
     <div class="meta rv"><b>Октамов Шохрухбек</b> · 271-25 SIr · ТУИТ им. аль-Хорезми · 2026</div>
   </section>
 
-  <section class="slide">
+  <section class="slide" style="--sbg:url(bg-s02.jpg)">
     <div class="kick">ПЛАН</div><h2><span class="no">01</span>Содержание защиты</h2>
     <div class="cols c3">
       <div class="box rv"><b>1. Постановка</b><p>Предметная область, три роли пользователей, 10 бизнес-правил: одна заявка на тендер, один протокол на тендер, положительные суммы.</p></div>
@@ -106,7 +108,7 @@
     </div>
   </section>
 
-  <section class="slide">
+  <section class="slide" style="--sbg:url(bg-s03.jpg)">
     <div class="kick">ПРЕДМЕТНАЯ ОБЛАСТЬ</div><h2><span class="no">02</span>Как работает платформа</h2>
     <div class="cols c3">
       <div class="box rv"><b>Заказчик (customer)</b><p>Хокимият, управление здравоохранения, IT-Park. Публикует тендер: категория, стартовая цена, deadline, город поставки.</p></div>
@@ -116,7 +118,7 @@
     <div class="rule rv" style="margin-top:18px">Гарантия модели: составной внешний ключ (appl_id, tender_id) делает невозможным победу «чужой» заявки — протокол обязан ссылаться на заявку своего тендера.</div>
   </section>
 
-  <section class="slide">
+  <section class="slide" style="--sbg:url(bg-s04.jpg)">
     <div class="kick">МОДЕЛЬ ДАННЫХ</div><h2><span class="no">03</span>Сущности и связи</h2>
     <table class="t rv">
       <tr><th>Связь</th><th>Тип</th><th>Реализация</th></tr>
@@ -130,12 +132,12 @@
     <p class="lead rv">12 компаний · 6 категорий · 16 допусков · 11 тендеров · 19 заявок · 7 протоколов. Данные авторские: Чилонзор Курилиш, Самарканд Софт, Нукус МедТех и другие.</p>
   </section>
 
-  <section class="slide">
+  <section class="slide" style="--sbg:url(bg-s05.jpg)">
     <div class="kick">ER-ДИАГРАММА</div><h2><span class="no">04</span>Вся база одним взглядом</h2>
     <img class="shot er rv" src="ER-диаграмма.png" alt="ER-диаграмма">
   </section>
 
-  <section class="slide">
+  <section class="slide" style="--sbg:url(bg-s06.jpg)">
     <div class="kick">РЕАЛИЗАЦИЯ · 3НФ</div><h2><span class="no">05</span>Таблицы и целостность</h2>
     <div class="cols c6">
       <div class="box rv"><div class="bign" data-cnt="12">0</div><p><b>company</b><br>PK · UQ ИНН и e-mail · CHECK роли · рейтинг 0–5</p></div>
@@ -148,7 +150,7 @@
     <p class="lead rv">1НФ — всё атомарно, без списков в ячейках. 2НФ — нет частичных зависимостей (дата допуска зависит от полной пары). 3НФ — названия хранятся один раз, экономия считается в запросе, а не хранится.</p>
   </section>
 
-  <section class="slide">
+  <section class="slide" style="--sbg:url(bg-s07.jpg)">
     <div class="kick">КОД</div><h2><span class="no">06</span>DDL и DML — фрагменты</h2>
     <div class="code rv"><span class="c">-- идемпотентный старт + ключевая таблица</span>
 <span class="k">DROP DATABASE IF EXISTS</span> tender_platform_oktamov;
@@ -163,7 +165,7 @@
 <span class="k">INSERT INTO</span> company ... ;  <span class="k">UPDATE</span> ... <span class="k">WHERE</span> ... ;  <span class="k">DELETE FROM</span> ... ;</div>
   </section>
 
-  <section class="slide">
+  <section class="slide" style="--sbg:url(bg-s08.jpg)">
     <div class="kick">11 ЗАПРОСОВ</div><h2><span class="no">07</span>От выборки до множеств</h2>
     <div class="cols c3">
       <div class="box rv"><b>1. Топ-5 по бюджету</b><p>ROUND · ORDER BY DESC · LIMIT. Лидер — УЗИ-аппараты, 2 750 млн сумов.</p></div>
@@ -175,7 +177,7 @@
     </div>
   </section>
 
-  <section class="slide">
+  <section class="slide" style="--sbg:url(bg-s09.jpg)">
     <div class="kick">ЗАПРОС 8</div><h2><span class="no">08</span>Победители и экономия, %</h2>
     <div class="rv">
       <div class="bar"><div>Школа № 45 · Qoqon Green Agro</div><div class="track"><div class="fill" style="--w:100%"></div></div><div class="v">8.7</div></div>
@@ -189,7 +191,7 @@
     <p class="lead rv">4 JOIN в цепочке протокол → тендер → заявка → компания. Все 7 побед дали бюджету плюс.</p>
   </section>
 
-  <section class="slide">
+  <section class="slide" style="--sbg:url(bg-s10.jpg)">
     <div class="kick">ДОКАЗАТЕЛЬСТВА · КОНСОЛЬ</div><h2><span class="no">09</span>Данные загружены</h2>
     <div class="cols c2">
       <img class="shot rv" src="Консоль 1 — таблица company.png" alt="company">
@@ -197,7 +199,7 @@
     </div>
   </section>
 
-  <section class="slide">
+  <section class="slide" style="--sbg:url(bg-s11.jpg)">
     <div class="kick">ДОКАЗАТЕЛЬСТВА · КОНСОЛЬ</div><h2><span class="no">10</span>Запросы и самопроверки</h2>
     <div class="cols c2">
       <img class="shot rv" src="Консоль 3 — тендеры.png" alt="тендеры">
@@ -205,7 +207,7 @@
     </div>
   </section>
 
-  <section class="slide">
+  <section class="slide" style="--sbg:url(bg-s12.jpg)">
     <div class="kick">ИТОГИ</div><h2><span class="no">11</span>Что сделано</h2>
     <div class="cols c2">
       <div class="box rv"><b>База работает</b><p>MySQL 8.4.9 · скрипт завершён с кодом 0 · 0 ошибок · 6 таблиц · 64 строки данных.</p></div>
