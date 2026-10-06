@@ -1,0 +1,5 @@
+# LibreOffice / Word временные файлы
+.~lock.*
+~$*
+*.tmp
+*.bak
